@@ -1,9 +1,10 @@
-import PhotoStack from "./components/photo-animation.tsx";
+import { PhotoAnimation } from "./components/photo-animation";
+
 
 export default function Home() {
   return (
     <div className="h-screen items-center justify-center flex">
-      <PhotoStack />
+      <PhotoAnimation />
     </div>
   );
 }
