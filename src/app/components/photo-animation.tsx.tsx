@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Trash2, ArrowLeft, Download } from "lucide-react";
 import Image from "next/image";
+import { PhotoBack, PhotoFront } from "./photo-trash";
 
 const MotionImage = motion(Image);
 
@@ -37,28 +38,17 @@ const PhotoStack = () => {
 
   useEffect(() => {
     if (isDeleted) {
-      const fadeOutTimer = setTimeout(() => setFadeOut(true), 1000);
-      const resetTimer = setTimeout(() => {
+      setTimeout(() => setFadeOut(true), 1000);
+      setTimeout(() => {
         setSelectedPhotos([]);
         setReadyToDelete(false);
         setIsDeleted(false);
+      }, 1200);
+      setTimeout(() => {
         setFadeOut(false);
-      }, 1500);
-
-      return () => {
-        clearTimeout(fadeOutTimer);
-        clearTimeout(resetTimer);
-      };
+      }, 1700);
     }
   }, [isDeleted]);
-
-  const handleDelete = () => {
-    if (readyToDelete) {
-      setIsDeleted(true);
-    } else {
-      setReadyToDelete(true);
-    }
-  };
 
   return (
     <MotionConfig transition={{ duration: 0.4, type: "spring", bounce: 0.2 }}>
@@ -68,7 +58,7 @@ const PhotoStack = () => {
         className="relative min-h-[600px] w-full max-w-3xl mx-auto p-6 flex flex-col items-center justify-center"
       >
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <AnimatePresence>
+          <AnimatePresence mode="popLayout">
             {!readyToDelete &&
               photosToShow.map((photo) => {
                 const isSelected = selectedPhotos.includes(photo.id);
@@ -76,16 +66,17 @@ const PhotoStack = () => {
                 return (
                   <motion.div
                     key={photo.id}
+                    layout
                     exit={
                       isSelected
                         ? {}
                         : {
                             opacity: 0,
-                            scale: 0.8,
-                            transition: { duration: 0.2 },
+                            filter: "blur(4px)",
+                            transition: { duration: 0.17 },
                           }
                     }
-                    className="relative group"
+                    className="relative flex h-[100px] w-[100px]"
                   >
                     <motion.div
                       className={`absolute right-2 top-2 z-10 w-6 h-6 rounded-full border-2 
@@ -123,7 +114,8 @@ const PhotoStack = () => {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <Image
+                      <MotionImage
+                        layoutId={`photo-${photo.id}`}
                         src={`/images/photo-stack-${photo.id}.png`}
                         width={400}
                         height={400}
@@ -148,6 +140,75 @@ const PhotoStack = () => {
           </AnimatePresence>
         </div>
 
+        <AnimatePresence>
+          {readyToDelete && (
+            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
+              <div className="relative w-32 h-40">
+                {/* Trash Back and Front should share the same container */}
+                <div className="absolute inset-0">
+                  <motion.div
+                    initial={{ scale: 1.2, filter: "blur(4px)", opacity: 0 }}
+                    animate={{ scale: 1, filter: "blur(0px)", opacity: 1 }}
+                    exit={{ scale: 1.2, filter: "blur(4px)", opacity: 0 }}
+                  >
+                    <PhotoBack />
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ delay: 0.175, duration: 0 }}
+                    className="absolute inset-0"
+                  >
+                    <PhotoFront />
+                  </motion.div>
+                </div>
+
+                {/* Photos to delete */}
+                <motion.div
+                  animate={{
+                    y: isDeleted ? 110 : 73,
+                    scale: isDeleted ? 0.7 : 1,
+                    filter: isDeleted ? "blur(4px)" : "blur(0px)",
+                  }}
+                  transition={
+                    isDeleted
+                      ? { duration: 0.3, type: "spring", bounce: 0 }
+                      : { delay: 0.13 }
+                  }
+                  className="absolute flex w-full top-[-60px] flex-col-reverse items-center"
+                  style={{ zIndex: 10 }} // Ensure photos are between back and front
+                >
+                  {selectedPhotos.map((id, index) => (
+                    <motion.div
+                      key={id}
+                      className="flex h-1 items-center gap-2"
+                    >
+                      <MotionImage
+                        layoutId={`photo-${id}`}
+                        src={`/images/photo-stack-${id}.png`}
+                        width={65}
+                        height={65}
+                        alt=""
+                        className="rounded-lg"
+                        style={{
+                          rotate: `${
+                            index % 2 === 0
+                              ? 4 * (selectedPhotos.length - index + 1)
+                              : -1 * (selectedPhotos.length - index + 1) * 4
+                          }deg`,
+                        }}
+                      />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Bottom action buttons */}
         <AnimatePresence>
           {selectedPhotos.length > 0 && !readyToDelete && (
             <motion.div
@@ -184,7 +245,9 @@ const PhotoStack = () => {
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={handleDelete}
+                      onClick={() => {
+                        setReadyToDelete(true);
+                      }}
                       className="bg-red-600 hover:bg-red-700"
                     >
                       Delete
@@ -203,61 +266,17 @@ const PhotoStack = () => {
 
         {readyToDelete && (
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2"
+            initial={{ scale: 1.2, opacity: 0, filter: "blur(4px)" }}
+            animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }}
+            transition={{ duration: 0.3, bounce: 0, type: "spring" }}
+            className="absolute bottom-10 flex flex-col gap-2"
           >
             <button
-              onClick={handleDelete}
-              className="px-6 py-3 bg-red-600 text-white rounded-full font-semibold hover:bg-red-700 transition-colors"
+              onClick={() => setIsDeleted(true)}
+              className="flex h-8 w-[200px] items-center justify-center gap-[15px] rounded-full bg-[#FF3F40] text-center text-[13px] font-semibold text-[#FFFFFF]"
             >
-              Delete {selectedPhotos.length} Photos
+              Trash {selectedPhotos.length} Photos
             </button>
-          </motion.div>
-        )}
-
-        {readyToDelete && (
-          <motion.div
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-          >
-            <div className="relative w-32 h-32">
-              <motion.div
-                animate={{
-                  y: isDeleted ? 60 : 0,
-                  scale: isDeleted ? 0.8 : 1,
-                  opacity: isDeleted ? 0 : 1,
-                }}
-                className="absolute top-0 left-1/2 -translate-x-1/2 flex flex-col-reverse items-center gap-2"
-              >
-                {selectedPhotos.map((id, index) => (
-                  <MotionImage
-                    key={id}
-                    src={`/images/photo-stack-${id}.png`}
-                    width={100}
-                    height={100}
-                    alt=""
-                    className="w-16 h-16 rounded-lg object-cover"
-                    style={{
-                      rotate: `${index % 2 === 0 ? 5 : -5}deg`,
-                      y: -index * 4,
-                    }}
-                  />
-                ))}
-              </motion.div>
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-24">
-                <svg
-                  viewBox="0 0 24 24"
-                  className="w-full h-full text-gray-300"
-                >
-                  <path
-                    fill="currentColor"
-                    d="M3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6H3zm4.5 12H6v-1.5h1.5V18zm0-3.5H6V13h1.5v1.5zm0-3.5H6V9.5h1.5V11zm3.5 7h-1.5v-1.5H12V18zm0-3.5h-1.5V13H12v1.5zm0-3.5h-1.5V9.5H12V11zm3.5 7h-1.5v-1.5h1.5V18zm0-3.5h-1.5V13h1.5v1.5zm0-3.5h-1.5V9.5h1.5V11z"
-                  />
-                </svg>
-              </div>
-            </div>
           </motion.div>
         )}
       </motion.div>
