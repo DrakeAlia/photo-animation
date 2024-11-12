@@ -103,7 +103,7 @@ export function PhotoAnimation() {
             await navigator.share({
               title: "Shared Photos",
               text: "Check out these photos!",
-              url: selectedImages[0], // Share first image for native share
+              url: selectedImages[0],
             });
           } catch (err) {
             toast({
@@ -129,12 +129,12 @@ export function PhotoAnimation() {
         initial={false}
         animate={{
           opacity: hide ? 0 : 1,
-          scale: hide ? 0.98 : 1, // Subtle scale effect when hiding
+          scale: hide ? 0.98 : 1,
         }}
         transition={{ duration: 0.3 }}
         className="relative min-h-[600px] w-full flex flex-col items-center justify-between gap-8 px-4 py-8 md:px-8"
       >
-        {/* Enhanced Undo Button */}
+        {/* Undo Button */}
         <div className="w-full">
           <AnimatePresence>
             {imagesToRemove.length > 0 && !readyToRemove && (
@@ -201,7 +201,7 @@ export function PhotoAnimation() {
                         transition={springTransition}
                         className="relative flex aspect-square w-full"
                       >
-                        {/* Enhanced Selection Indicator */}
+                        {/* Selection Indicator */}
                         <motion.div
                           initial={false}
                           animate={{
@@ -229,7 +229,7 @@ export function PhotoAnimation() {
                           </AnimatePresence>
                         </motion.div>
 
-                        {/* Enhanced Image Button */}
+                        {/* Image Button */}
                         <button
                           aria-label={`Select ${image} image`}
                           onClick={(e) => {
@@ -272,7 +272,7 @@ export function PhotoAnimation() {
                       </motion.li>
                     </DialogTrigger>
 
-                    {/* Enhanced Dialog Preview */}
+                    {/* Dialog Preview */}
                     <DialogContent className="max-w-3xl p-0">
                       <motion.img
                         initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -359,7 +359,6 @@ export function PhotoAnimation() {
                       >
                         <Share2 className="h-4 w-4" />
                         <span className="hidden sm:inline">Share</span>
-                        <span className="sm:hidden">↗</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
